@@ -7,6 +7,7 @@ namespace Auth
         [SerializeField] private LoginPageView loginPageView;
         [SerializeField] private RegistrationPageView registrationPageView;
         [SerializeField] private ProfilePageView profilePageView;
+        [SerializeField] private ForgotPassView forgotPassView;
         [SerializeField] private NotifyPageView notifyPageView;
 
         private PageRoutingModel _pageRoutingModel;
@@ -16,9 +17,11 @@ namespace Auth
         private RegistrationController _registrationController;
         private ProfileController _profileController;
         private PageRoutingController _pageRoutingController;
+        private ForgotPassController _forgotPassController;
 
         private FireBaseService _fireBaseService;
         private ValidationService _validationService;
+        private LoadFotoService _loadFotoService;
 
         void Start()
         {
@@ -29,30 +32,34 @@ namespace Auth
         {
             notifyPageView.Init();
             _userModel = new UserModel();
+            
             _validationService = new ValidationService(notifyPageView);
             _fireBaseService = new(notifyPageView, _validationService);
+            _loadFotoService = new();
 
             loginPageView.Init();
             registrationPageView.Init();
             profilePageView.Init();
+            forgotPassView.Init();
             
 
            
             _pageRoutingModel = new PageRoutingModel();
 
-            _pageRoutingController = new(_pageRoutingModel, loginPageView, registrationPageView, profilePageView);
+            _pageRoutingController = new(_pageRoutingModel, loginPageView, registrationPageView, profilePageView, forgotPassView);
             _pageRoutingController.Init();
             
             _loginController = new(_fireBaseService, loginPageView, _pageRoutingController);
             _loginController.Init();
 
-            _profileController = new ProfileController(_fireBaseService, profilePageView, _pageRoutingController, _userModel);
+            _profileController = new(_fireBaseService, profilePageView, _pageRoutingController, _userModel, _loadFotoService);
             _profileController.Init();
 
-            
-
-            _registrationController = new(registrationPageView, _fireBaseService, _pageRoutingController);
+            _registrationController = new(_fireBaseService, registrationPageView, _pageRoutingController);
             _registrationController.Init();
+
+            _forgotPassController = new(_fireBaseService, forgotPassView, _pageRoutingController);
+            _forgotPassController.Init();
 
             _fireBaseService.Init(); // после всего, чтобы успеть подписатьс€ на событи€
         }

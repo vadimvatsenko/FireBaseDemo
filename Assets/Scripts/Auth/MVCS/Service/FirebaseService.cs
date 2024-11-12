@@ -3,12 +3,14 @@ namespace Auth
     using Firebase;
     using Firebase.Auth;
     using System;
+    using System.Net.Mail;
     using System.Threading.Tasks;
+    using UnityEditor.VersionControl;
     using UnityEngine;
 
     public class FireBaseService
     {
-        
+
         public FirebaseAuth _auth { get; private set; }
         public FirebaseUser _user { get; private set; }
         private NotifyPageView _notifyPageView;
@@ -16,13 +18,13 @@ namespace Auth
         private Color SuccessColor => Color.green;
         private Color FailureColor => Color.red;
 
-        public event Action OnLoginSuccess; 
+        public event Action OnLoginSuccess;
         public event Action OnRegistSuccess;
         public event Action<FirebaseUser> OnAuthStateChanged;
         public event Action OnAutoLogin;
 
 
-        public FireBaseService(NotifyPageView notifyPageView, ValidationService validationService) 
+        public FireBaseService(NotifyPageView notifyPageView, ValidationService validationService)
         {
             _auth = FirebaseAuth.DefaultInstance;
             _notifyPageView = notifyPageView;
@@ -37,15 +39,16 @@ namespace Auth
 
         public void Init()
         {
-            if(PlayerPrefs.GetInt("RememberMeToogle") == 1) // добавлено
+            if (PlayerPrefs.GetInt("RememberMeToogle") == 1) // добавлено
             {
                 _auth.StateChanged += AuthStateChanged;
                 //_user = _auth.CurrentUser;
                 AuthStateChanged(this, null);
-            } else
+            }
+            else
             {
                 QuitFromProfile(); // добавлено
-            }            
+            }
         }
 
         public async void RegisterNewUser(string email, string password, string confirmPassword)
@@ -74,6 +77,7 @@ namespace Auth
 
                     _notifyPageView.ShowMessage("Success", result.User.DisplayName + " " + result.User.UserId + " " + "regist success", SuccessColor);
                     OnRegistSuccess?.Invoke();
+                    EmailVerification();
                 }
                 catch (FirebaseException ex)
                 {
@@ -132,40 +136,39 @@ namespace Auth
                 if (signedIn)
                 {
                     _notifyPageView.ShowMessage("Success", _user.UserId + "Enter Success", Color.green);
-                    Debug.Log("AutoLogin");
+                    
                     OnLoginSuccess?.Invoke();
                     OnAuthStateChanged?.Invoke(_user);
                 }
             }
         }
 
-        public async void UpdateUserFrofile(string userName, string uri = "https://masterpiecer-images.s3.yandex.net/d960d0ee6f5811ee886e3a7ca4cc1bdc:upscaled")
+        public async void UpdateUserFrofile(string userName, string uri = " ")
         {
             try
             {
-                UserProfile userProfile = new UserProfile() 
-                { 
+                UserProfile userProfile = new UserProfile()
+                {
                     DisplayName = userName != string.Empty ? userName : _user.DisplayName,
-                    //PhotoUrl = new Uri(uri)
-
+                    PhotoUrl = new Uri("https://cdn.icon-icons.com/icons2/1371/PNG/512/batman_90804.png")
                 };
 
                 var task = _user.UpdateUserProfileAsync(userProfile);
                 await task;
-                
-                    if (task.IsCanceled)
-                    {
-                        Debug.LogError("UpdateUserProfileAsync was canceled.");
-                        return;
-                    }
-                    if (task.IsFaulted)
-                    {
-                        Debug.LogError("UpdateUserProfileAsync encountered an error: " + task.Exception);
-                        return;
-                    }
 
-                    _notifyPageView.ShowMessage("Success", "User profile updated successfully.", SuccessColor);
-                    OnAuthStateChanged?.Invoke(_user);
+                if (task.IsCanceled)
+                {
+                    Debug.LogError("UpdateUserProfileAsync was canceled.");
+                    return;
+                }
+                if (task.IsFaulted)
+                {
+                    Debug.LogError("UpdateUserProfileAsync encountered an error: " + task.Exception);
+                    return;
+                }
+
+                _notifyPageView.ShowMessage("Success", "User profile updated successfully.", SuccessColor);
+                OnAuthStateChanged?.Invoke(_user);
 
 
             }
@@ -173,6 +176,93 @@ namespace Auth
             {
                 _notifyPageView.ShowMessage("Error", ex.Message, FailureColor);
             }
+        }
+
+        private async void EmailVerification()
+        {
+            Debug.Log(_user.Email);
+            try
+            {
+                var task = _user.SendEmailVerificationAsync();
+                await task;
+                if (task.IsCanceled)
+                {
+                    _notifyPageView.ShowMessage("Error", "SendEmailVerificationAsync was canceled.", FailureColor);
+                    return;
+                }
+                if (task.IsFaulted)
+                {
+                    _notifyPageView.ShowMessage("Error", "SendEmailVerificationAsync encountered an error: " + task.Exception, FailureColor);
+                    return;
+                }
+                _notifyPageView.ShowMessage("Success", "Email sent successfully." + task.Exception, SuccessColor);
+            }
+            catch (FirebaseException ex)
+            {
+                _notifyPageView.ShowMessage("Error", ex.Message, FailureColor);
+            }
+        
+        }
+
+        public async void SendForgotPassLetter(string emailAddress)
+        {
+            emailAddress = "vadim_vatsenko@ukr.net";
+            if (_validationService.EmailValidation(emailAddress))
+            {
+                try
+                {
+                    var task = _auth.SendPasswordResetEmailAsync(emailAddress);
+                    await task;
+
+                    if (task.IsCanceled)
+                    {
+                        _notifyPageView.ShowMessage("Error", "SendPasswordResetEmailAsync was canceled.", FailureColor);
+                        return;
+                    }
+                    if (task.IsFaulted)
+                    {
+                        _notifyPageView.ShowMessage("Error", "SendPasswordResetEmailAsync encountered an error: " + task.Exception, FailureColor);
+                        return;
+                    }
+                    _notifyPageView.ShowMessage("Success", "Password reset email sent successfully.", SuccessColor);
+                }
+                catch (FirebaseException ex)
+                {
+                    _notifyPageView.ShowMessage("Error", ex.Message, FailureColor);
+                }
+            }
+            
+        }
+
+        public async void UpdateUserEmail(string emailAddress)
+        {
+            if (_validationService.EmailValidation(emailAddress))
+            {
+                try
+                {
+                    var task = _user.UpdateEmailAsync(emailAddress);
+                    await task;
+                    if (task.IsCanceled)
+                    {
+                        _notifyPageView.ShowMessage("Error", "UpdateEmailAsync was canceled.", FailureColor);
+                        return;
+                    }
+                    if (task.IsFaulted)
+                    {
+                        _notifyPageView.ShowMessage("Error", "UpdateEmailAsync encountered an error: " + task.Exception, FailureColor);
+                        return;
+                    }
+
+                    _notifyPageView.ShowMessage("Success", "User email updated successfully.", SuccessColor);
+
+
+                }
+                catch (FirebaseException ex)
+                {
+                    _notifyPageView.ShowMessage("Error", ex.Message, FailureColor);
+                }
+            }
+            
         }
 
         public void QuitFromProfile()

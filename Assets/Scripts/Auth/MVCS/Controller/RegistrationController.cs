@@ -17,9 +17,9 @@ namespace Auth
         private readonly PageRoutingController pageRoutingController;
 
 
-        public RegistrationController(RegistrationPageView registrationPageView,
-                                      FireBaseService fireBaseService,
-                                      PageRoutingController pageRoutingController)
+        public RegistrationController(FireBaseService fireBaseService, 
+                                        RegistrationPageView registrationPageView,
+                                        PageRoutingController pageRoutingController)
         {
             this.registrationPageView = registrationPageView;
             this.fireBaseService = fireBaseService;

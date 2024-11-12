@@ -21,6 +21,7 @@ namespace Auth
 
         public event Action OnLoginBtnClickedEvent;
         public event Action OnRegisterBtnClickedEvent;
+        public event Action OnForgotPassBtnClickedEvent;
         public event Action<bool> OnRememberMeToggleClickedEvent;
 
         private void Update()
@@ -47,8 +48,9 @@ namespace Auth
         {
             rememberMeToggle.isOn = PlayerPrefs.GetInt("RememberMeToogle") == 1 ? true : false; // добавлено
 
-            registrationButton.onClick.AddListener(OnRegisterClickedUnity);
             loginButton.onClick.AddListener(OnLoginClickedUnity);
+            registrationButton.onClick.AddListener(OnRegisterClickedUnity);
+            forgotPassBtn.onClick.AddListener(OnOnForgotPassBtnClickedUnity);
             rememberMeToggle.onValueChanged.AddListener(OnRememberMeClickedUnity);
         }
 
@@ -57,6 +59,7 @@ namespace Auth
             registrationButton.onClick.RemoveAllListeners();
             loginButton.onClick.RemoveAllListeners();
             rememberMeToggle.onValueChanged.RemoveAllListeners();
+            forgotPassBtn.onClick.RemoveAllListeners();
         }
 
         private void OnRememberMeClickedUnity(bool arg0)
@@ -73,6 +76,13 @@ namespace Auth
         {
             OnLoginBtnClickedEvent?.Invoke();
         }
-        
+
+        private void OnOnForgotPassBtnClickedUnity()
+        {
+            Debug.Log("Forgon Btn Clicled");
+            OnForgotPassBtnClickedEvent?.Invoke();
+        }
+
+
     }
 }

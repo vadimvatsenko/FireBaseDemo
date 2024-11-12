@@ -11,35 +11,43 @@ namespace Auth
         private readonly LoginPageView loginPageView;
         private readonly RegistrationPageView registrationPageView;
         private readonly ProfilePageView profilePageView;
+        private readonly ForgotPassView forgotPassView;
 
         private readonly Dictionary<CurrentPage, IPageView> pagesHash = new();
         public PageRoutingController(PageRoutingModel pageRoutingModel,
                                         LoginPageView loginPageView,
                                         RegistrationPageView registrationPageView,
-                                        ProfilePageView profilePageView)
+                                        ProfilePageView profilePageView,
+                                        ForgotPassView forgotPassView)
         {
             this.pageRoutingModel = pageRoutingModel;
             this.loginPageView = loginPageView;
             this.registrationPageView = registrationPageView;
             this.profilePageView = profilePageView;
+            this.forgotPassView = forgotPassView;
 
             pagesHash.Add(CurrentPage.Login, loginPageView);
             pagesHash.Add(CurrentPage.Registration, registrationPageView);
             pagesHash.Add(CurrentPage.Profile, profilePageView);
+            pagesHash.Add(CurrentPage.ForgotPass, forgotPassView);
         }
 
         ~PageRoutingController()
         {
             pageRoutingModel.CurrentPageValue.OnValueChanged -= OnPageChanged;
             loginPageView.OnRegisterBtnClickedEvent -= OnRegisterClicked;
+            loginPageView.OnForgotPassBtnClickedEvent -= OnForgotPassClicked;
             registrationPageView.OnBackButtonClicked -= OnBackClicked;
+            forgotPassView.OnBackBtnClicked -= OnBackClicked;
         }
 
         public void Init()
         {
             pageRoutingModel.CurrentPageValue.OnValueChanged += OnPageChanged;
             loginPageView.OnRegisterBtnClickedEvent += OnRegisterClicked;
+            loginPageView.OnForgotPassBtnClickedEvent += OnForgotPassClicked;
             registrationPageView.OnBackButtonClicked += OnBackClicked;
+            forgotPassView.OnBackBtnClicked += OnBackClicked;
         }
 
         private void OnBackClicked()
@@ -50,6 +58,11 @@ namespace Auth
         private void OnRegisterClicked()
         {
             pageRoutingModel.CurrentPageValue.Value = CurrentPage.Registration;
+        }
+
+        private void OnForgotPassClicked()
+        {
+            pageRoutingModel.CurrentPageValue.Value = CurrentPage.ForgotPass;
         }
 
         public void ChangePage(CurrentPage currentPage)

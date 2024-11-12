@@ -6,5 +6,6 @@ namespace Auth
     {        
         public void Show(); // показать
         public void Hide(); // скрыть
+        public void Init();
     }
 }

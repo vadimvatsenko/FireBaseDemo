@@ -15,7 +15,6 @@ namespace Auth
 
         public void Hide()
         {
-            Debug.Log("Noty Hide");
             _errorLabel.text = " ";
             _errorMessage.text = " ";
             this.gameObject.SetActive(false);

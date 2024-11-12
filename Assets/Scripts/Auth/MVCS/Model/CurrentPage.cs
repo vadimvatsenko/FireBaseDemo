@@ -5,5 +5,6 @@ namespace Auth
         Login,
         Registration,
         Profile,
+        ForgotPass,
     }
 }
